@@ -1,7 +1,7 @@
 import supertest from "supertest"
 import {web} from "../src/application/web.js";
 import { logger } from "../src/application/logging.js";
-import { createTestContact, createTestUser, getTestContact, removeAllTestContact, removeTestUser } from "./test.util";
+import { createManyTestContact, createTestContact, createTestUser, getTestContact, removeAllTestContact, removeTestUser } from "./test.util";
 
 describe('POST /api/contacts', function () {
     beforeEach(async ()=> {
@@ -157,5 +157,66 @@ describe('PUT /api/contacts/:contactId', () => {
         logger.info(result.body);
 
         expect(result.status).toBe(404)
+    })
+})
+
+
+describe('DELETE /api/contacts/:contactId', function () {
+    beforeEach(async ()=> {
+        await createTestUser()
+        await createTestContact()
+    })
+    
+    afterEach(async () => {
+        await removeAllTestContact()
+        await removeTestUser()
+    })
+
+    it('should can delete contact', async () => {
+        let testContact = await getTestContact()
+        const result = await supertest(web)
+            .delete('/api/contacts/' + testContact.id)
+            .set('Authorization', 'test')
+
+        expect(result.status).toBe(200)
+        expect(result.body.data).toBe("Ok")
+
+        testContact = await getTestContact()
+        expect(testContact).toBeNull()
+    })
+
+    it('should reject if contact is not found', async () => {
+        let testContact = await getTestContact()
+        const result = await supertest(web)
+            .delete('/api/contacts/' + (testContact.id + 1))
+            .set('Authorization', 'test')
+
+        expect(result.status).toBe(404)
+    })
+})
+
+describe('GET /api/contacts/', function (){
+    beforeEach(async ()=> {
+        await createTestUser()
+        await createManyTestContact()
+    })
+    
+    afterEach(async () => {
+        await removeAllTestContact()
+        await removeTestUser()
+    })
+
+    it('should can search without parameter', async () => {
+        const result = await supertest(web)
+            .get('/api/contacts/')
+            .set('Authorization', 'test')
+
+        logger.info(result.body);
+
+        expect(result.status).toBe(200)
+        expect(result.body.data.length).toBe(10)
+        expect(result.body.paging.page).toBe(1)
+        expect(result.body.paging.total_page).toBe(2)
+        expect(result.body.paging.total_item).toBe(15)
     })
 })
