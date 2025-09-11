@@ -1,5 +1,5 @@
 import { validate } from "../validation/validation.js"
-import { contactCreateValidation, contactUpdateValidation, getContactValidation, searchContactValidation} from "../validation/contact-validation"
+import { contactCreateValidation, contactUpdateValidation, getContactValidation, searchContactValidation} from "../validation/contact-validation.js"
 import { prismaClient } from "../application/database.js"
 import { ResponseError } from "../error/response-error.js"
 
